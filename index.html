@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语动词学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .level-filter {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .verbs-table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .verbs-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .verbs-table thead {
+            background: #667eea;
+            color: white;
+        }
+        
+        .verbs-table th {
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .verbs-table th:nth-child(1) { width: 60px; text-align: center; }
+        .verbs-table th:nth-child(2) { width: 150px; }
+        .verbs-table th:nth-child(3) { width: 200px; }
+        .verbs-table th:nth-child(4) { width: 200px; }
+        .verbs-table th:nth-child(5) { width: 100px; text-align: center; }
+        
+        .verbs-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.2s ease;
+        }
+        
+        .verbs-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .verbs-table td {
+            padding: 12px 10px;
+        }
+        
+        .verbs-table td:nth-child(1) {
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .verb-kanji {
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .verb-kana {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .verb-level {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .level-n5 { background: #4CAF50; color: white; }
+        .level-n4 { background: #8BC34A; color: white; }
+        .level-n3 { background: #FFC107; color: #333; }
+        .level-n2 { background: #FF9800; color: white; }
+        .level-n1 { background: #F44336; color: white; }
+        
+        .speaker-icon {
+            width: 32px;
+            height: 32px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .speaker-icon:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+        
+        .speaker-icon:active {
+            transform: scale(0.95);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .data-source {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #666;
+        }
+        
+        .data-source a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .data-source a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #667eea;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>日语动词学习</h1>
+            <p class="subtitle">按等级浏览和学习日语核心动词</p>
+        </header>
+        
+        <div class="level-filter">
+            <button class="filter-btn active" data-level="all">全部</button>
+            <button class="filter-btn" data-level="N5">N5</button>
+            <button class="filter-btn" data-level="N4">N4</button>
+            <button class="filter-btn" data-level="N3">N3</button>
+            <button class="filter-btn" data-level="N2">N2</button>
+            <button class="filter-btn" data-level="N1">N1</button>
+        </div>
+        
+        <div class="verbs-table-container">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>正在加载动词数据...</p>
+            </div>
+            <table class="verbs-table" id="verbsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>序列号</th>
+                        <th>动词</th>
+                        <th>英文含义</th>
+                        <th>中文含义</th>
+                        <th>发音</th>
+                    </tr>
+                </thead>
+                <tbody id="verbsTableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>日语动词学习应用</p>
+            <div class="data-source">
+                数据源来自 <a href="https://pypi.org/project/kotobase/0.2.7/" target="_blank">kotobase 0.2.7</a>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        let verbsData = [];
+        let filteredVerbs = [];
+        
+        // 加载动词数据
+        async function loadVerbsData() {
+            try {
+                const response = await fetch('verbs_master_final.json');
+                verbsData = await response.json();
+                console.log('加载了', verbsData.length, '个动词');
+                filteredVerbs = [...verbsData];
+                renderTable();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('verbsTable').style.display = 'table';
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('loading').innerHTML = '<p style="color: red;">加载数据失败，请刷新页面重试</p>';
+            }
+        }
+        
+        // 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('verbsTableBody');
+            tbody.innerHTML = '';
+            
+            filteredVerbs.forEach((verb, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        <span class="verb-kanji">${verb.verb || verb.kana}</span>
+                        <div class="verb-kana">${verb.kana}</div>
+                    </td>
+                    <td>${verb.english_meaning || '-'}</td>
+                    <td>${verb.chinese_meaning || '-'}</td>
+                    <td style="text-align: center;">
+                        <button class="speaker-icon" onclick="playPronunciation('${verb.kana}', event)">🔊</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 播放发音
+        function playPronunciation(kana, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            if (!kana) {
+                alert('发音数据不可用');
+                return;
+            }
+            
+            // 使用 Web Speech API 实现日语发音
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(kana);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.8;
+                utterance.pitch = 1.0;
+                
+                utterance.onerror = (event) => {
+                    console.error('发音失败:', event);
+                    // 备用方案：尝试使用在线音频
+                    playOnlineAudio(kana);
+                };
+                
+                speechSynthesis.speak(utterance);
+            } else {
+                // 备用方案：尝试使用在线音频
+                playOnlineAudio(kana);
+            }
+        }
+        
+        // 在线音频播放（备用方案）
+        function playOnlineAudio(kana) {
+            const audioUrl = `https://assets.languagepod101.com/dictionary/japanese/audio/female/${kana}.mp3`;
+            const audio = new Audio(audioUrl);
+            audio.play().catch(error => {
+                console.error('播放失败:', error);
+                alert('发音文件可能不存在，请尝试其他动词');
+            });
+        }
+        
+        // 等级筛选按钮
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有按钮的 active 类
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                // 添加当前按钮的 active 类
+                btn.classList.add('active');
+                
+                // 筛选动词
+                const level = btn.dataset.level;
+                if (level === 'all') {
+                    filteredVerbs = [...verbsData];
+                } else {
+                    filteredVerbs = verbsData.filter(verb => verb.level === level);
+                }
+                
+                renderTable();
+            });
+        });
+        
+        // 初始化加载数据
+        loadVerbsData();
+    </script>
+</body>
+</html>
