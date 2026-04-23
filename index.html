@@ -48,7 +48,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         
@@ -70,6 +70,35 @@
         }
         
         .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .status-filter {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .status-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .status-btn:hover {
+            background: #f0f0ff;
+        }
+        
+        .status-btn.active {
             background: #667eea;
             color: white;
         }
@@ -103,6 +132,7 @@
         .verbs-table th:nth-child(3) { width: 200px; }
         .verbs-table th:nth-child(4) { width: 200px; }
         .verbs-table th:nth-child(5) { width: 100px; text-align: center; }
+        .verbs-table th:nth-child(6) { width: 200px; text-align: center; }
         
         .verbs-table tbody tr {
             border-bottom: 1px solid #e0e0e0;
@@ -113,6 +143,18 @@
             background-color: #f5f5f5;
         }
         
+        .verbs-table tbody tr.unlearned {
+            background-color: #fff3e0;
+        }
+        
+        .verbs-table tbody tr.learned {
+            background-color: #e8f5e9;
+        }
+        
+        .verbs-table tbody tr.mastered {
+            background-color: #e3f2fd;
+        }
+        
         .verbs-table td {
             padding: 12px 10px;
         }
@@ -121,6 +163,11 @@
             text-align: center;
             font-weight: bold;
             color: #667eea;
+        }
+        
+        .verbs-table td:nth-child(5),
+        .verbs-table td:nth-child(6) {
+            text-align: center;
         }
         
         .verb-kanji {
@@ -170,6 +217,95 @@
         
         .speaker-icon:active {
             transform: scale(0.95);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: white;
+            margin-right: 8px;
+        }
+        
+        .status-badge.learned {
+            background: #4CAF50;
+        }
+        
+        .status-badge.mastered {
+            background: #2196F3;
+        }
+        
+        .status-badge.unlearned {
+            background: #9E9E9E;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            margin: 2px;
+        }
+        
+        .learn-btn {
+            background: #FFC107;
+            color: #333;
+        }
+        
+        .learn-btn:hover {
+            background: #FFB300;
+            transform: translateY(-1px);
+        }
+        
+        .master-btn {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .master-btn:hover {
+            background: #1976D2;
+            transform: translateY(-1px);
+        }
+        
+        .clear-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .clear-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-1px);
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
         }
         
         footer {
@@ -236,6 +372,28 @@
             <button class="filter-btn" data-level="N1">N1</button>
         </div>
         
+        <div class="status-filter">
+            <button class="status-btn active" data-status="all">全部</button>
+            <button class="status-btn" data-status="unlearned">未学习</button>
+            <button class="status-btn" data-status="learned">已学习</button>
+            <button class="status-btn" data-status="mastered">已掌握</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">总单词</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="learnedCount">0</div>
+                <div class="stat-label">已学习</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="masteredCount">0</div>
+                <div class="stat-label">已掌握</div>
+            </div>
+        </div>
+        
         <div class="verbs-table-container">
             <div id="loading" class="loading">
                 <div class="spinner"></div>
@@ -249,6 +407,7 @@
                         <th>英文含义</th>
                         <th>中文含义</th>
                         <th>发音</th>
+                        <th>学习状态</th>
                     </tr>
                 </thead>
                 <tbody id="verbsTableBody">
@@ -267,14 +426,79 @@
     <script>
         let verbsData = [];
         let filteredVerbs = [];
+        let userProgress = {};
+        let currentLevel = 'all';
+        let currentStatus = 'all';
         
-        // 加载动词数据
+        const STORAGE_KEY = 'japanese_verb_learning_progress';
+        
+        function loadUserProgress() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    userProgress = JSON.parse(stored);
+                } else {
+                    userProgress = {};
+                }
+            } catch (error) {
+                console.error('加载学习进度失败:', error);
+                userProgress = {};
+            }
+        }
+        
+        function saveUserProgress() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+            } catch (error) {
+                console.error('保存学习进度失败:', error);
+            }
+        }
+        
+        function getVerbStatus(kana) {
+            return userProgress[kana] || 'unlearned';
+        }
+        
+        function markLearned(kana) {
+            if (userProgress[kana] !== 'mastered') {
+                userProgress[kana] = 'learned';
+                saveUserProgress();
+                updateStats();
+                renderTable();
+            }
+        }
+        
+        function markMastered(kana) {
+            userProgress[kana] = 'mastered';
+            saveUserProgress();
+            updateStats();
+            renderTable();
+        }
+        
+        function clearStatus(kana) {
+            delete userProgress[kana];
+            saveUserProgress();
+            updateStats();
+            renderTable();
+        }
+        
+        function updateStats() {
+            const total = verbsData.length;
+            const learned = Object.values(userProgress).filter(v => v === 'learned' || v === 'mastered').length;
+            const mastered = Object.values(userProgress).filter(v => v === 'mastered').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('learnedCount').textContent = learned;
+            document.getElementById('masteredCount').textContent = mastered;
+        }
+        
         async function loadVerbsData() {
             try {
                 const response = await fetch('verbs_master_final.json');
                 verbsData = await response.json();
                 console.log('加载了', verbsData.length, '个动词');
+                loadUserProgress();
                 filteredVerbs = [...verbsData];
+                updateStats();
                 renderTable();
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('verbsTable').style.display = 'table';
@@ -284,13 +508,35 @@
             }
         }
         
-        // 渲染表格
         function renderTable() {
             const tbody = document.getElementById('verbsTableBody');
             tbody.innerHTML = '';
             
             filteredVerbs.forEach((verb, index) => {
+                const status = getVerbStatus(verb.kana);
                 const row = document.createElement('tr');
+                row.className = status;
+                
+                let statusBadge = '';
+                let actionButtons = '';
+                
+                if (status === 'mastered') {
+                    statusBadge = '<span class="status-badge mastered">已掌握</span>';
+                    actionButtons = '<button class="action-btn clear-btn" onclick="clearStatus(\'' + verb.kana + '\')">清除</button>';
+                } else if (status === 'learned') {
+                    statusBadge = '<span class="status-badge learned">已学习</span>';
+                    actionButtons = `
+                        <button class="action-btn master-btn" onclick="markMastered('${verb.kana}')">掌握</button>
+                        <button class="action-btn clear-btn" onclick="clearStatus('${verb.kana}')">清除</button>
+                    `;
+                } else {
+                    statusBadge = '<span class="status-badge unlearned">未学习</span>';
+                    actionButtons = `
+                        <button class="action-btn learn-btn" onclick="markLearned('${verb.kana}')">学习</button>
+                        <button class="action-btn master-btn" onclick="markMastered('${verb.kana}')">掌握</button>
+                    `;
+                }
+                
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>
@@ -299,26 +545,30 @@
                     </td>
                     <td>${verb.english_meaning || '-'}</td>
                     <td>${verb.chinese_meaning || '-'}</td>
-                    <td style="text-align: center;">
+                    <td>
                         <button class="speaker-icon" onclick="playPronunciation('${verb.kana}', event)">🔊</button>
+                    </td>
+                    <td>
+                        ${statusBadge}
+                        <div style="margin-top: 8px;">${actionButtons}</div>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
         
-        // 播放发音
         function playPronunciation(kana, event) {
             if (event) {
                 event.stopPropagation();
             }
+            
+            markLearned(kana);
             
             if (!kana) {
                 alert('发音数据不可用');
                 return;
             }
             
-            // 使用 Web Speech API 实现日语发音
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(kana);
                 utterance.lang = 'ja-JP';
@@ -327,18 +577,15 @@
                 
                 utterance.onerror = (event) => {
                     console.error('发音失败:', event);
-                    // 备用方案：尝试使用在线音频
                     playOnlineAudio(kana);
                 };
                 
                 speechSynthesis.speak(utterance);
             } else {
-                // 备用方案：尝试使用在线音频
                 playOnlineAudio(kana);
             }
         }
         
-        // 在线音频播放（备用方案）
         function playOnlineAudio(kana) {
             const audioUrl = `https://assets.languagepod101.com/dictionary/japanese/audio/female/${kana}.mp3`;
             const audio = new Audio(audioUrl);
@@ -348,27 +595,42 @@
             });
         }
         
-        // 等级筛选按钮
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // 移除所有按钮的 active 类
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                // 添加当前按钮的 active 类
                 btn.classList.add('active');
-                
-                // 筛选动词
-                const level = btn.dataset.level;
-                if (level === 'all') {
-                    filteredVerbs = [...verbsData];
-                } else {
-                    filteredVerbs = verbsData.filter(verb => verb.level === level);
-                }
-                
-                renderTable();
+                currentLevel = btn.dataset.level;
+                filterVerbs();
             });
         });
         
-        // 初始化加载数据
+        document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStatus = btn.dataset.status;
+                filterVerbs();
+            });
+        });
+        
+        function filterVerbs() {
+            let result = [...verbsData];
+            
+            if (currentLevel !== 'all') {
+                result = result.filter(verb => verb.level === currentLevel);
+            }
+            
+            if (currentStatus !== 'all') {
+                result = result.filter(verb => {
+                    const status = getVerbStatus(verb.kana);
+                    return status === currentStatus;
+                });
+            }
+            
+            filteredVerbs = result;
+            renderTable();
+        }
+        
         loadVerbsData();
     </script>
 </body>
